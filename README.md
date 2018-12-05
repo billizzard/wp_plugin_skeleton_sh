@@ -12,7 +12,7 @@ chmod +x wp_plugin_skeleton.sh
 
 ### Prerequisites
 
-If the docker installation question you answer yes. After installation, enter the created folder with docker-compose.yml file and execute:
+If in question about the docker installation you answer yes. After installation, enter the created folder with docker-compose.yml file and execute:
 
 ```
 sudo docker-compose up
