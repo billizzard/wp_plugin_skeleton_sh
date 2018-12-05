@@ -38,6 +38,10 @@ printf "\n\n${QUOTE_COLOR} The author’s website or profile on another website,
 printf "\n${NO_COLOR}Enter author uri:"
 read AUTHOR_URI
 
+printf "\nSometimes a plug-in needs a table in the database. It needs to be added to the script to Activate and Uninstall the plugin."
+printf "\nDo you need an example with a test table in a database? (y/n, Default: n):"
+read DATABASE_NEED
+
 printf "\nDocker will allow you to immediately deploy a WordPress site with the plug-in already installed. The site will be available at http://localhost/. \nIf you have not worked with a docker before, select n."
 printf "\nDo you want use Docker? (y/n, Default: n):"
 read DOCKER_NEED
@@ -48,6 +52,7 @@ AUTHOR_NAME=${AUTHOR_NAME:-AuthorName}
 AUTHOR_EMAIL=${AUTHOR_EMAIL:-AuthorEmail}
 AUTHOR_URI=${AUTHOR_URI:-AuthorUri}
 DOCKER_NEED=${DOCKER_NEED:-n}
+DATABASE_NEED=${DATABASE_NEED:-n}
 PLUGIN_SLUG=$(echo "${PLUGIN_NAME}" | sed -r 's/\<./\U&/g')
 PLUGIN_FOLDER=$(echo "${PLUGIN_NAME}" | sed -r 's/ /_/g')
 PLUGIN_FOLDER=$(echo "${PLUGIN_FOLDER}" | sed -e 's/\(.*\)/\L\1/')
@@ -74,7 +79,7 @@ services:
             - 80:80
             - 443:443
         volumes:
-            - ${DB_PATH_HOST}/nginx/logs:/var/log/nginx
+            - \${DB_PATH_HOST}/nginx/logs:/var/log/nginx
             - app-volume:/var/www/wordpress
             - ./${PLUGIN_FOLDER}:\${APP_PATH_HOST}/wordpress/wp-content/plugins/${PLUGIN_FOLDER}
 
@@ -815,10 +820,10 @@ cat <<EOT >> uninstall.php
  * @link       ${AUTHOR_URI}
  * @since      1.0.0
  *
- * @package    ${PUGIN_SLUG}
+ * @package    ${PLUGIN_SLUG}
  */
 
-require_once plugin_dir_path(__FILE__) . 'includes/${PUGIN_SLUG}Activator.php';
+require_once plugin_dir_path(__FILE__) . 'includes/${PLUGIN_SLUG}Activator.php';
 
 // If uninstall not called from WordPress, then exit.
 if (!defined('WP_UNINSTALL_PLUGIN')) {
@@ -826,6 +831,24 @@ if (!defined('WP_UNINSTALL_PLUGIN')) {
 }
 
 EOT
+
+if [ "$DATABASE_NEED" == "y" ]; then
+	cat <<EOT >> uninstall.php
+/**
+ * Simple Example for uninstall plugin if we have a tables
+ */
+
+global \$wpdb;
+delete_option('${PLUGIN_FOLDER}_version');
+\$tableFirst = \$wpdb->prefix . ${PLUGIN_SLUG}Activator::TABLE_FIRST;
+\$tableSecond = \$wpdb->prefix . ${PLUGIN_SLUG}Activator::TABLE_SECOND;
+
+\$sql = sprintf('DROP TABLE IF EXISTS %s, %s', \$tableFirst, \$tableSecond);
+
+\$wpdb->query(\$sql);
+
+EOT
+fi
 
 echo 'Create admin/css/admin.css'
 touch admin/css/admin.css
@@ -1402,6 +1425,139 @@ EOT
 
 echo "Create includes/${PLUGIN_SLUG}Activator.php"
 touch includes/${PLUGIN_SLUG}Activator.php
+
+if [ "$DATABASE_NEED" == "y" ]; then
+	cat <<EOT >> includes/${PLUGIN_SLUG}Activator.php
+<?php
+/**
+ * Fired during plugin activation.
+ *
+ * This class defines all code necessary to run during the plugin's activation.
+ *
+ * @since 1.0.0
+ * @package ${PLUGIN_SLUG}
+ * @subpackage ${PLUGIN_SLUG}/includes
+ * @author ${AUTHOR_NAME} <${AUTHOR_EMAIL}>
+ */
+class ${PLUGIN_SLUG}Activator
+{
+    /**
+     * Simple Example for create table
+     */
+
+    const TABLE_FIRST = 'test_first_table';
+    const TABLE_SECOND = 'test_second_table';
+
+    const DB_VERSION = '1.2';
+
+    /**
+     * Short Description. (use period)
+     *
+     * Long Description.
+     *
+     * @since 1.0.0
+     */
+    public static function activate()
+    {
+        \$installedVersion = get_option("${PLUGIN_FOLDER}_version");
+
+        // If install plugin
+        if (!\$installedVersion) {
+            self::createFirstTable();
+            self::createSecondTable();
+        } else { // If update plugin
+            switch (\$installedVersion) {
+                case '1.0':
+                    self::updateTo1Dot1();
+                case '1.1':
+                    self::updateTo1Dot2();
+            }
+        }
+
+        update_option('${PLUGIN_FOLDER}_version', self::DB_VERSION);
+    }
+
+    /**
+     * Create first table
+     *
+     * @since 1.0.0
+     */
+    private static function createFirstTable()
+    {
+        global \$wpdb;
+
+        \$tableName = \$wpdb->prefix . self::TABLE_FIRST;
+
+        if (\$wpdb->get_var("show tables like '\$tableName'") !== \$tableName) {
+            \$sql = "CREATE TABLE " . \$tableName . " (
+                  id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+                  post_id BIGINT(20) UNSIGNED NOT NULL,
+                  text TEXT NOT NULL,
+                  hash VARCHAR(32) NOT NULL,
+                  PRIMARY KEY(id),
+                  INDEX post_id (post_id)
+                );";
+
+            require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+            dbDelta(\$sql);
+        }
+    }
+
+    /**
+     * Create first table
+     *
+     * @since 1.2.0
+     */
+    private static function createSecondTable()
+    {
+        global \$wpdb;
+
+        \$tableName = \$wpdb->prefix . self::TABLE_SECOND;
+
+        if (\$wpdb->get_var("show tables like '\$tableName'") !== \$tableName) {
+            \$sql = "CREATE TABLE " . \$tableName . " (
+                  id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+                  post_id BIGINT(20) UNSIGNED NOT NULL,
+                  text TEXT NOT NULL,
+                  hash VARCHAR(32) NOT NULL,
+                  PRIMARY KEY(id),
+                  INDEX post_id (post_id)
+                );";
+
+            require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+            dbDelta(\$sql);
+        }
+    }
+
+    /**
+     * Update database version to 1.1
+     *
+     * @since 1.1.0
+     */
+    private static function updateTo1Dot1()
+    {
+        global \$wpdb;
+
+        \$commentTable = \$wpdb->prefix . self::TABLE_FIRST;
+
+        \$sql = "ALTER TABLE " . \$commentTable;
+        \$sql .= " ADD context TEXT NOT NULL DEFAULT ''";
+        \$wpdb->query(\$sql);
+    }
+
+    /**
+     * Update database version to 1.2
+     *
+     * @since 1.2.0
+     */
+    private static function updateTo1Dot2()
+    {
+        self::createSecondTable();
+    }
+}
+
+EOT
+else
 cat <<EOT >> includes/${PLUGIN_SLUG}Activator.php
 <?php
 /**
@@ -1422,6 +1578,7 @@ class ${PLUGIN_SLUG}Activator
 }
 
 EOT
+fi
 
 echo "Create includes/${PLUGIN_SLUG}Deactivator.php"
 touch includes/${PLUGIN_SLUG}Deactivator.php
