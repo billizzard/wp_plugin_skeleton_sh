@@ -1777,12 +1777,12 @@ class ${PLUGIN_SLUG}Loader
 EOT
 
 printf "${SUCCESS_COLOR}Skeleton successfully created"
-fi
+
 
 printf "\n${NO_COLOR}Developer guidelines: ${LINK_COLOR}https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/"
 printf "\n${NO_COLOR}How work README.txt: ${LINK_COLOR}https://developer.wordpress.org/plugins/wordpress-org/how-your-readme-txt-works/"
 printf "\n${NO_COLOR}How use subversion in wp repository: ${LINK_COLOR}https://developer.wordpress.org/plugins/wordpress-org/how-to-use-subversion/"
 printf "\n${NO_COLOR}How add icon and banner to plugin: ${LINK_COLOR}https://developer.wordpress.org/plugins/wordpress-org/plugin-assets/"
-
+fi
 
 printf "\n"
