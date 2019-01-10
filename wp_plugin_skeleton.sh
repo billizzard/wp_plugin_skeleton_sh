@@ -42,8 +42,8 @@ printf "\nSometimes a plug-in needs a table in the database. It needs to be adde
 printf "\nDo you need an example with a test table in a database? (y/n, Default: n):"
 read DATABASE_NEED
 
-printf "\nDocker will allow you to immediately deploy a WordPress site with the plug-in already installed. The site will be available at http://localhost/. \nIf you have not worked with a docker before, select n."
-printf "\nDo you want use Docker? (y/n, Default: n):"
+printf "\n\n${QUOTE_COLOR}Docker will allow you to immediately deploy a WordPress site with the plug-in already installed. The site will be available at http://localhost/. \nIf you have not worked with a docker before, select n."
+printf "\n${NO_COLOR}Do you want use Docker? (y/n, Default: n):"
 read DOCKER_NEED
 
 PLUGIN_NAME=${PLUGIN_NAME:-My Awesome Plugin}
