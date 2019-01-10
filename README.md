@@ -26,3 +26,10 @@ http://localhost/
 
 The code of the plugin itself will be located in the folder with the name of the plugin
 
+### Other
+
+```
+./wp_plugin_skeleton.sh --links
+```
+
+Will show useful links for plugin development.
