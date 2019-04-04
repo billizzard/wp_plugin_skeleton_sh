@@ -59,11 +59,11 @@ PLUGIN_FOLDER=$(echo "${PLUGIN_FOLDER}" | sed -e 's/\(.*\)/\L\1/')
 PLUGIN_NAME_CONST=$(echo "${PLUGIN_FOLDER}" | sed -e 's/\(.*\)/\U\1/')
 PLUGIN_SLUG=$(echo "${PLUGIN_SLUG}" | sed -r 's/ //g')
 
-if [ "$DOCKER_NEED" == "y" ]; then
+if [ $DOCKER_NEED = 'y' ]; then
 	echo 'Start create project skeleton'
 	mkdir wp_${PLUGIN_FOLDER}
 	cd wp_${PLUGIN_FOLDER}
-	mkdir {nginx,php-fpm-wordpress}
+	mkdir nginx php-fpm-wordpress
 
 	echo "Create docker-compose.yml file"
 	touch docker-compose.yml
@@ -839,7 +839,7 @@ if (!defined('WP_UNINSTALL_PLUGIN')) {
 
 EOT
 
-if [ "$DATABASE_NEED" == "y" ]; then
+if [ $DATABASE_NEED = 'y' ]; then
 	cat <<EOT >> uninstall.php
 /**
  * Simple Example for uninstall plugin if we have a tables
@@ -1433,7 +1433,7 @@ EOT
 echo "Create includes/${PLUGIN_SLUG}Activator.php"
 touch includes/${PLUGIN_SLUG}Activator.php
 
-if [ "$DATABASE_NEED" == "y" ]; then
+if [ $DATABASE_NEED = 'y' ]; then
 	cat <<EOT >> includes/${PLUGIN_SLUG}Activator.php
 <?php
 /**
