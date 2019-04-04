@@ -237,9 +237,16 @@ echo "Create folder ${PLUGIN_FOLDER}"
 mkdir $PLUGIN_FOLDER
 cd $PLUGIN_FOLDER
 echo "Create folders structure"
-mkdir -p admin/{css,js,partials}
-mkdir -p public/{css,js,partials}
-mkdir -p {includes,languages}
+mkdir admin
+mkdir admin/js
+mkdir admin/partials
+mkdir admin/css
+mkdir public
+mkdir public/css
+mkdir public/js
+mkdir public/partials
+mkdir includes
+mkdir languages
 
 echo "Create index.php file"
 touch index.php
@@ -247,7 +254,7 @@ cat <<EOT >> index.php
 <?php
 /**
  * The plugin bootstrap file
- * 
+ *
  * This file is read by WordPress to generate the plugin information in the plugin
  * admin area. This file also includes all of the dependencies used by the plugin,
  * registers the activation and deactivation functions, and defines a function
